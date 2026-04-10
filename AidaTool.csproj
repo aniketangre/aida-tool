@@ -1,0 +1,144 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RootNamespace>AidaTool</RootNamespace>
+    <Platforms>AnyCPU</Platforms>
+    <UseWpf>true</UseWpf>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <OutputPath>C:\ProgramData\Synera\Addins\$(AssemblyName)</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!--Absolute or relative path to the Synera folder. Should end with a trailing slash-->
+    <DefaultSyneraLocation>C:\Program Files\Synera\</DefaultSyneraLocation>
+    <LocalSyneraLocation>C:\Program Files\Synera\</LocalSyneraLocation>
+
+    <!--Lowest priority-->
+    <SyneraLocation Condition="Exists('$(DefaultSyneraLocation)')">$(DefaultSyneraLocation)</SyneraLocation>
+    <SyneraLocation Condition="Exists('$(LocalSyneraLocation)')">$(LocalSyneraLocation)</SyneraLocation>
+    <!--Highest priority-->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="SyneraCore">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SyneraLocation)SyneraCore.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SyneraCoreImplementation">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SyneraLocation)SyneraCoreImplementation.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SyneraDataTypes">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SyneraLocation)SyneraDataTypes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SyneraLocalization">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SyneraLocation)SyneraLocalization.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SyneraLicensing">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SyneraLocation)SyneraLicensing.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SyneraLogger">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SyneraLocation)SyneraLogger.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SyneraUtilities">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SyneraLocation)SyneraUtilities.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SyneraKernels">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SyneraLocation)SyneraKernels.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SyneraOptimization">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SyneraLocation)SyneraOptimization.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SyneraWpfCommon">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SyneraLocation)SyneraWpfCommon.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SyneraWpfDirectX">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SyneraLocation)SyneraWpfDirectX.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SyneraWpfDirectXExtensions">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SyneraLocation)SyneraWpfDirectXExtensions.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SyneraHeadlessModel">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SyneraLocation)SyneraHeadlessModel.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="$(ProjectName).addin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+    <Folder Include="Icons\" />
+    <Folder Include="Help\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
+  </ItemGroup>
+
+  <Target Name="CopyIconsAndHelpFiles" AfterTargets="Build">
+    <ItemGroup>
+      <Icons Include="$(ProjectDir)Icons/**/*" />
+      <Help Include="$(ProjectDir)Help/**/*" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(Icons)" DestinationFolder="$(TargetDir)Icons/%(Icons.RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(Help)" DestinationFolder="$(TargetDir)Help/%(Help.RecursiveDir)" SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="CreateAddinPackage" AfterTargets="Build" Condition="'$(Configuration)'=='Release'">
+    <PropertyGroup>
+      <AddinTargetFolder>$(TargetDir.TrimEnd('\'))</AddinTargetFolder>
+    </PropertyGroup>
+
+    <Exec Command="&quot;$(SyneraLocation)SyneraAddinManager.exe&quot; pack --path &quot;$(AddinTargetFolder)&quot; --exclude *.pdb *RoslynCA.json" />
+  </Target>
+</Project>

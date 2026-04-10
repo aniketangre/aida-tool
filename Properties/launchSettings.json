@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Debug in Synera": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\Synera\\Synera.exe"
+    }
+  }
+}
